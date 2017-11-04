@@ -69,7 +69,7 @@ HatenaBookmarkLoader.prototype._load = function() {
       try {
         request.status
       } catch(e) {
-        // error 
+        // error
         self.error('error :connect error :' + self.url);
       }
 
@@ -78,17 +78,18 @@ HatenaBookmarkLoader.prototype._load = function() {
 
         //var xml = parser.parseFromString(request.responseText.replace(/[\x00-\x1F]|\7F/g,""), 'text/xml');
         var xml = request.responseXML;
+        if (xml) {
+            var userId = HatenaBookmarkParser.getUserId(xml);
 
-        var userId = HatenaBookmarkParser.getUserId(xml);
+            localStorage.userId = userId;
+            incsearch.userId = userId;
 
-        localStorage.userId = userId;
-        incsearch.userId = userId;
+            var bookmarks = HatenaBookmarkParser.parse(xml);
 
-        var bookmarks = HatenaBookmarkParser.parse(xml);
+            self.total = bookmarks.length;
 
-        self.total = bookmarks.length;
-
-        self.update(bookmarks);
+            self.update(bookmarks);
+        }
 
       } else if (request.status == 401){
         // Authorization Required
@@ -106,6 +107,8 @@ HatenaBookmarkLoader.prototype._load = function() {
     }
   };
 
+  request.responseType = 'document';
+  request.overrideMimeType('text/xml');
   request.open("GET", this.url, true);
   request.send(null);
 };
